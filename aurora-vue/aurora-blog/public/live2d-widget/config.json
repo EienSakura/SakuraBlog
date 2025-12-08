@@ -1,0 +1,14 @@
+{
+  "enableDynamicTips": true,
+  "enableRouteHooks": true,
+  "enableToolbarActions": true,
+  "enableIdleWatcher": true,
+  "enableDegradeGuard": true,
+  "enableScrollWatcher": true,
+  "preloadDelay": 3000,
+  "interactionThreshold": 3,
+  "apiTTL": 1800,
+  "nightStartHour": 21,
+  "nightEndHour": 6,
+  "apiBase": ""
+}
