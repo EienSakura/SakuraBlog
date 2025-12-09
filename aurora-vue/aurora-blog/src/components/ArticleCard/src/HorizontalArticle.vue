@@ -14,8 +14,11 @@
     </span>
     <div class="feature-article">
       <div class="feature-thumbnail">
-        <img v-if="article.articleCover" class="ob-hz-thumbnail" v-lazy="article.articleCover" />
-        <img v-else class="ob-hz-thumbnail" src="https://images.unsplash.com/photo-1522383225653-ed111181a951?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" />
+        <LazyImage
+          :src="article.articleCover || defaultCover"
+          :alt="article.articleTitle || 'article cover'"
+          :placeholder="defaultCover"
+          :fallback="defaultCover" />
         <span class="thumbnail-screen" :style="bannerHoverGradient" />
       </div>
       <div class="feature-content">
@@ -86,9 +89,11 @@ import { useRouter } from 'vue-router'
 import { useArticleStore } from '@/stores/article'
 import { useI18n } from 'vue-i18n'
 import emitter from '@/utils/mitt'
+import LazyImage from '@/components/LazyImage.vue'
 
 export default defineComponent({
   name: 'HorizontalArticle',
+  components: { LazyImage },
   setup() {
     const proxy: any = getCurrentInstance()?.appContext.config.globalProperties
     const appStore = useAppStore()
@@ -96,6 +101,7 @@ export default defineComponent({
     const userStore = useUserStore()
     const router = useRouter()
     const { t } = useI18n()
+    const defaultCover = 'https://images.unsplash.com/photo-1522383225653-ed111181a951?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80'
     const handleAuthorClick = (link: string) => {
       if (link === '') link = window.location.href
       window.open(link)
@@ -128,6 +134,7 @@ export default defineComponent({
       article: toRef(articleStore.$state, 'topArticle'),
       handleAuthorClick,
       toArticle,
+      defaultCover,
       t
     }
   }

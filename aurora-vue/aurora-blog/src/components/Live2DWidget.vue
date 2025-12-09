@@ -121,6 +121,7 @@ export default defineComponent({
     const errorHits = ref(0)
     const progressNotified = ref(false)
     const nightNotified = ref(false)
+    const dynamicContentOffline = ref(sessionStorage.getItem(LIVE2D_SESSION_KEYS.dynamicOffline) === 'true')
 
     let preloadTimer: number | undefined
     let idleTimer: number | undefined
@@ -193,7 +194,15 @@ export default defineComponent({
       return data.data || data
     }
 
+    const markDynamicContentOffline = (reason?: string) => {
+      if (dynamicContentOffline.value) return
+      dynamicContentOffline.value = true
+      sessionStorage.setItem(LIVE2D_SESSION_KEYS.dynamicOffline, 'true')
+      console.warn('Live2D 动态内容降级，继续使用静态预设。', reason)
+    }
+
     const hydrateDynamicContent = async () => {
+      if (dynamicContentOffline.value) return
       try {
         const [hot, tags, activity] = await Promise.all([
           fetchWithCache<Live2dHotArticle[]>(LIVE2D_SESSION_KEYS.hotArticles, resolveApiUrl('/api/articles/hot?limit=5')),
@@ -206,6 +215,7 @@ export default defineComponent({
         maybeShowActivityHighlight()
       } catch (error) {
         console.warn('Live2D 动态数据拉取失败', error)
+        markDynamicContentOffline((error as Error)?.message)
       }
     }
 

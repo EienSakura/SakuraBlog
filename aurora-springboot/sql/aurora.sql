@@ -681,6 +681,29 @@ INSERT INTO `t_role_resource` VALUES (5545, 14, 1127);
 INSERT INTO `t_role_resource` VALUES (5546, 14, 1187);
 
 -- ----------------------------
+-- Table structure for t_live2d_activity
+-- ----------------------------
+DROP TABLE IF EXISTS `t_live2d_activity`;
+CREATE TABLE `t_live2d_activity`  (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '活动标题',
+  `url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '跳转链接',
+  `start_at` datetime NOT NULL COMMENT '开始时间',
+  `end_at` datetime NULL DEFAULT NULL COMMENT '结束时间',
+  `priority` int NOT NULL DEFAULT 0 COMMENT '优先级，值越大越靠前',
+  `is_enable` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否启用',
+  `create_time` datetime NOT NULL COMMENT '创建时间',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of t_live2d_activity
+-- ----------------------------
+INSERT INTO `t_live2d_activity`(`id`, `title`, `url`, `start_at`, `end_at`, `priority`, `is_enable`, `create_time`, `update_time`) VALUES
+(1, '社区共创征稿', 'https://example.com/campaign', '2024-01-01 00:00:00', '2024-12-31 23:59:59', 10, 1, '2024-01-01 00:00:00', '2024-01-01 00:00:00');
+
+-- ----------------------------
 -- Table structure for t_tag
 -- ----------------------------
 DROP TABLE IF EXISTS `t_tag`;

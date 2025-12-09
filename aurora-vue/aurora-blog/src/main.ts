@@ -94,7 +94,9 @@ plugins.forEach((plugin) => {
 })
 registerSvgIcon(app)
 registerObSkeleton(app)
-app.mount('#app')
+router.isReady().then(() => {
+  app.mount('#app')
+})
 console.log('%c 网站作者:EienSakura', 'color:#bada55')
 api.report()
 

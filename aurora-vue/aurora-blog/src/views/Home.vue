@@ -75,13 +75,14 @@ import { ArticleCard, HorizontalArticle } from '@/components/ArticleCard'
 import { Title } from '@/components/Title'
 import { Sidebar, Profile, RecentComment, TagBox, Notice, WebsiteInfo } from '@/components/Sidebar'
 import { useAppStore } from '@/stores/app'
+import { useCommonStore } from '@/stores/common'
 import { useUserStore } from '@/stores/user'
 import { useArticleStore } from '@/stores/article'
 import { useCategoryStore } from '@/stores/Category'
 import { useI18n } from 'vue-i18n'
 import Paginator from '@/components/Paginator.vue'
 import api from '@/api/api'
-import markdownToHtml from '@/utils/markdown'
+import { buildArticleAbstract } from '@/utils/article'
 
 export default defineComponent({
   name: 'Home',
@@ -101,6 +102,7 @@ export default defineComponent({
   },
   setup() {
     const appStore = useAppStore()
+    const commonStore = useCommonStore()
     const userStore = useUserStore()
     const articleStore = useArticleStore()
     const categoryStore = useCategoryStore()
@@ -123,8 +125,13 @@ export default defineComponent({
       total: 0,
       current: 1
     })
+    const normalizeArticleAbstract = (article: any) => {
+      if (!article) return
+      article.articleContent = buildArticleAbstract(article.articleContent || '')
+    }
     let nowCategoryId = 0
     onMounted(() => {
+      commonStore.restoreHeaderImage()
       fetchTopAndFeatured()
       fetchCategories()
       fetchArticles()
@@ -133,16 +140,8 @@ export default defineComponent({
     })
     const fetchTopAndFeatured = () => {
       api.getTopAndFeaturedArticles().then(({ data }) => {
-        data.data.topArticle.articleContent = markdownToHtml(data.data.topArticle.articleContent)
-          .replace(/<\/?[^>]*>/g, '')
-          .replace(/[|]*\n/, '')
-          .replace(/&npsp;/gi, '')
-        data.data.featuredArticles.forEach((item: any) => {
-          item.articleContent = markdownToHtml(item.articleContent)
-            .replace(/<\/?[^>]*>/g, '')
-            .replace(/[|]*\n/, '')
-            .replace(/&npsp;/gi, '')
-        })
+        normalizeArticleAbstract(data.data.topArticle)
+        data.data.featuredArticles.forEach((item: any) => normalizeArticleAbstract(item))
         articleStore.topArticle = data.data.topArticle
         articleStore.featuredArticles = data.data.featuredArticles
       })
@@ -161,10 +160,7 @@ export default defineComponent({
           .then(({ data }) => {
             if (data.flag) {
               data.data.records.forEach((item: any) => {
-                item.articleContent = markdownToHtml(item.articleContent)
-                  .replace(/<\/?[^>]*>/g, '')
-                  .replace(/[|]*\n/, '')
-                  .replace(/&npsp;/gi, '')
+                normalizeArticleAbstract(item)
               })
               articleStore.articles = data.data.records
               pagination.total = data.data.count
@@ -185,10 +181,7 @@ export default defineComponent({
         })
         .then(({ data }) => {
           data.data.records.forEach((item: any) => {
-            item.articleContent = markdownToHtml(item.articleContent)
-              .replace(/<\/?[^>]*>/g, '')
-              .replace(/[|]*\n/, '')
-              .replace(/&npsp;/gi, '')
+            normalizeArticleAbstract(item)
           })
           articleStore.articles = data.data.records
           pagination.total = data.data.count

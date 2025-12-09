@@ -166,6 +166,7 @@ import emitter from '@/utils/mitt'
 import { v3ImgPreviewFn } from 'v3-img-preview'
 import api from '@/api/api'
 import markdownToHtml from '@/utils/markdown'
+import { buildArticleAbstract } from '@/utils/article'
 
 export default defineComponent({
   name: 'Article',
@@ -274,6 +275,15 @@ export default defineComponent({
         })
       }
     }
+    const normalizeArticleCard = (card: any) => {
+      if (!card) {
+        return ''
+      }
+      return {
+        ...card,
+        articleContent: buildArticleAbstract(card.articleContent || '')
+      }
+    }
     const fetchArticle = () => {
       loading.value = true
       api.getArticeById(reactiveData.articleId).then(({ data }) => {
@@ -304,24 +314,8 @@ export default defineComponent({
             initTocbot()
           })
         })
-        new Promise((resolve) => {
-          data.data.preArticleCard.articleContent = markdownToHtml(data.data.preArticleCard.articleContent)
-            .replace(/<\/?[^>]*>/g, '')
-            .replace(/[|]*\n/, '')
-            .replace(/&npsp;/gi, '')
-          resolve(data.data.preArticleCard)
-        }).then((preArticleCard: any) => {
-          reactiveData.preArticleCard = preArticleCard
-        })
-        new Promise((resolve) => {
-          data.data.nextArticleCard.articleContent = markdownToHtml(data.data.nextArticleCard.articleContent)
-            .replace(/<\/?[^>]*>/g, '')
-            .replace(/[|]*\n/, '')
-            .replace(/&npsp;/gi, '')
-          resolve(data.data.nextArticleCard)
-        }).then((nextArticleCard) => {
-          reactiveData.nextArticleCard = nextArticleCard
-        })
+        reactiveData.preArticleCard = normalizeArticleCard(data.data.preArticleCard)
+        reactiveData.nextArticleCard = normalizeArticleCard(data.data.nextArticleCard)
       })
     }
     const fetchComments = () => {

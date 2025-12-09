@@ -39,6 +39,12 @@ public class TagController {
         return ResultVO.ok(tagService.listTopTenTags());
     }
 
+    @ApiOperation("随机获取标签")
+    @GetMapping("/tags/random")
+    public ResultVO<List<TagDTO>> getRandomTags(@RequestParam(value = "limit", defaultValue = "5") Integer limit) {
+        return ResultVO.ok(tagService.listRandomTags(limit));
+    }
+
     @ApiOperation(value = "查询后台标签列表")
     @GetMapping("/admin/tags")
     public ResultVO<PageResultDTO<TagAdminDTO>> listTagsAdmin(ConditionVO conditionVO) {

@@ -16,6 +16,8 @@ public interface TagService extends IService<Tag> {
 
     List<TagDTO> listTopTenTags();
 
+    List<TagDTO> listRandomTags(Integer limit);
+
     PageResultDTO<TagAdminDTO> listTagsAdmin(ConditionVO conditionVO);
 
     List<TagAdminDTO> listTagsAdminBySearch(ConditionVO conditionVO);

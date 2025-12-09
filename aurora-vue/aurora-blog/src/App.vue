@@ -8,8 +8,29 @@
       tabindex="-1"
       :style="cssVariables">
       <HeaderMain />
-      <div class="app-banner app-banner-image" :style="headerImage" v-if="isHome" />
-      <div class="app-banner app-banner-screen" :style="headerBaseBackground" v-if="isHome" />
+      <div
+        class="app-banner app-banner-image"
+        :class="{
+          'is-loaded': heroBackground.hasCustom && heroBackground.url,
+          'is-loading': heroBackground.pending,
+          'no-image': !heroBackground.hasCustom
+        }"
+        :style="heroBackgroundStyle"
+        v-if="isHome">
+        <transition name="hero-placeholder-fade">
+          <div v-if="showHeroPlaceholder" key="hero-placeholder" class="hero-background-placeholder">
+            <div class="hero-placeholder-inner"></div>
+          </div>
+        </transition>
+        <transition name="hero-background-fade" mode="out-in">
+          <img
+            v-if="heroBackground.url"
+            :key="heroBackground.url"
+            class="hero-background-img"
+            :src="heroBackground.url"
+            alt="hero background" />
+        </transition>
+      </div>
       <HeroSection v-if="isHome" />
       <div
         id="main-content"
@@ -76,6 +97,30 @@ export default defineComponent({
       'nprogress-custom-parent': false
     })
     const wrapperStyle = ref({ 'min-height': '100vh' })
+    const heroBackground = ref({ url: '', pendingUrl: '', hasCustom: false, pending: false })
+    const loadHeroBackground = (url: string) => {
+      const target = (url || '').trim()
+      if (!target) {
+        heroBackground.value = { url: '', pendingUrl: '', hasCustom: false, pending: false }
+        return
+      }
+      if (heroBackground.value.pending && heroBackground.value.pendingUrl === target) {
+        return
+      }
+      heroBackground.value = {
+        ...heroBackground.value,
+        pending: true,
+        pendingUrl: target
+      }
+      const loader = new Image()
+      loader.onload = () => {
+        heroBackground.value = { url: target, pendingUrl: '', hasCustom: true, pending: false }
+      }
+      loader.onerror = () => {
+        heroBackground.value = { url: '', pendingUrl: '', hasCustom: false, pending: false }
+      }
+      loader.src = target
+    }
     const isMobile = computed(() => {
       return commonStore.isMobile
     })
@@ -89,6 +134,14 @@ export default defineComponent({
         } else {
           document.documentElement.classList.remove('snap-scroll')
         }
+      },
+      { immediate: true }
+    )
+
+    watch(
+      [() => commonStore.headerImage, () => commonStore.headerRevision],
+      ([url]) => {
+        loadHeroBackground(url || '')
       },
       { immediate: true }
     )
@@ -118,12 +171,9 @@ export default defineComponent({
         appStore.categoryCount = data.data.categoryCount
         appStore.tagCount = data.data.tagCount
         appStore.websiteConfig = data.data.websiteConfigDTO
-        const heroBackground = data.data.websiteConfigDTO.heroBackground
-        if (heroBackground) {
-          commonStore.setHeaderImage(heroBackground)
-        } else {
-          commonStore.resetHeaderImage()
-        }
+        const heroBackground = data.data.websiteConfigDTO.heroBackground || ''
+        commonStore.setDefaultHeaderImage(heroBackground)
+        commonStore.restoreHeaderImage()
         initFavicon(data.data.websiteConfigDTO.favicon)
       })
     }
@@ -181,18 +231,16 @@ export default defineComponent({
     return {
       title: computed(() => appStore.websiteConfig.websiteTitle || metaStore.title),
       theme: computed(() => appStore.themeConfig.theme),
-      headerImage: computed(() => {
-        return {
-          backgroundImage: `url(${commonStore.headerImage || 'https://images.unsplash.com/photo-1493780474015-ba834fd0ce2f'})`,
-          opacity: 1
+      heroBackground,
+      heroBackgroundStyle: computed(() => {
+        if (heroBackground.value.pending || !heroBackground.value.url) {
+          return {
+            background: appStore.themeConfig.header_gradient_css
+          }
         }
+        return {}
       }),
-      headerBaseBackground: computed(() => {
-        return {
-          background: appStore.themeConfig.header_gradient_css,
-          opacity: commonStore.headerImage !== '' ? 0.91 : 0.99
-        }
-      }),
+      showHeroPlaceholder: computed(() => heroBackground.value.pending || !heroBackground.value.url),
       wrapperStyle: computed(() => wrapperStyle.value),
       isHome: computed(() => route.path === '/'),
 
@@ -285,16 +333,150 @@ body {
   z-index: 1;
 }
 
-.app-banner-image {
-  z-index: 1;
-  background-size: cover;
-  opacity: 0;
-  transition: ease-in-out opacity 300ms;
+@keyframes banner-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
-.app-banner-screen {
-  transition: ease-in-out opacity 300ms;
-  z-index: 2;
-  opacity: 0.91;
+.hero-background-fade-enter-active,
+.hero-background-fade-leave-active,
+.hero-placeholder-fade-enter-active,
+.hero-placeholder-fade-leave-active {
+  transition: opacity 400ms ease;
 }
+.hero-background-fade-enter-from,
+.hero-background-fade-leave-to,
+.hero-placeholder-fade-enter-from,
+.hero-placeholder-fade-leave-to {
+  opacity: 0;
+}
+
+.hero-background-placeholder {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+.hero-placeholder-inner {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.16) 40%, rgba(255, 255, 255, 0.08) 100%);
+  animation: banner-shimmer 1.6s linear infinite;
+  opacity: 0.65;
+}
+
+@keyframes hero-img-reveal {
+  0% {
+    clip-path: inset(0 100% 0 0);
+    opacity: 0;
+    transform: scale(1.08) translate3d(0, 0, 0);
+    filter: blur(18px);
+  }
+  55% {
+    clip-path: inset(0 0 0 0);
+    opacity: 0.85;
+    filter: blur(8px);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
+@keyframes hero-img-sweep {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-banner-image img,
+  .hero-background-placeholder,
+  .hero-placeholder-inner {
+    animation: none !important;
+    transition: opacity 200ms ease;
+    clip-path: inset(0 0 0 0);
+    filter: none;
+  }
+}
+
+.app-banner-image {
+  z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transform: translateZ(0);
+  transition: opacity 400ms ease;
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+    transform: scale(1.08) translate3d(0, 0, 0);
+    filter: blur(18px);
+    z-index: 1;
+  }
+  &.is-loaded img {
+    animation: hero-img-reveal 1.15s cubic-bezier(0.3, 0.7, 0, 1) forwards;
+  }
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.05) 100%);
+    transform: translateX(-100%);
+    animation: banner-shimmer 1.2s linear infinite;
+    opacity: 0;
+    z-index: 3;
+  }
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -10%;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 45%, rgba(255, 255, 255, 0) 100%);
+    transform: translateX(-140%);
+    z-index: 2;
+    opacity: 0;
+    pointer-events: none;
+  }
+  &.is-loading::before {
+    opacity: 1;
+  }
+  &.is-loaded {
+    opacity: 1;
+  }
+  &.is-loaded::before {
+    opacity: 0;
+  }
+  &.is-loaded::after {
+    animation: hero-img-sweep 0.95s ease-out 0.15s forwards;
+  }
+  &.no-image {
+    opacity: 1;
+  }
+}
+
 </style>

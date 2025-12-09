@@ -14,8 +14,11 @@
     </span>
     <div class="article">
       <div class="article-thumbnail">
-        <img v-if="article.articleCover" v-lazy="article.articleCover" alt="" />
-        <img v-else src="https://images.unsplash.com/photo-1522383225653-ed111181a951?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" />
+        <LazyImage
+          :src="article.articleCover || defaultCover"
+          :alt="article.articleTitle || 'article cover'"
+          :placeholder="defaultCover"
+          :fallback="defaultCover" />
         <span class="thumbnail-screen" :style="gradientBackground" />
       </div>
       <div class="article-content">
@@ -85,9 +88,11 @@ import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import emitter from '@/utils/mitt'
+import LazyImage from '@/components/LazyImage.vue'
 
 export default defineComponent({
   name: 'ArticleCard',
+  components: { LazyImage },
   props: ['data'],
   setup(props) {
     const proxy: any = getCurrentInstance()?.appContext.config.globalProperties
@@ -95,6 +100,7 @@ export default defineComponent({
     const userStore = useUserStore()
     const router = useRouter()
     const { t } = useI18n()
+    const defaultCover = 'https://images.unsplash.com/photo-1522383225653-ed111181a951?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80'
     const handleAuthorClick = (link: string) => {
       if (link === '') link = window.location.href
       window.open(link)
@@ -127,6 +133,7 @@ export default defineComponent({
       article: toRefs(props).data,
       handleAuthorClick,
       toArticle,
+      defaultCover,
       t
     }
   }

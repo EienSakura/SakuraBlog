@@ -43,6 +43,18 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
         return tagMapper.listTopTenTags();
     }
 
+    @Override
+    public List<TagDTO> listRandomTags(Integer limit) {
+        int fetchSize = limit == null ? 5 : limit;
+        if (fetchSize <= 0) {
+            fetchSize = 5;
+        }
+        if (fetchSize > 20) {
+            fetchSize = 20;
+        }
+        return tagMapper.listRandomTags(fetchSize);
+    }
+
     @SneakyThrows
     @Override
     public PageResultDTO<TagAdminDTO> listTagsAdmin(ConditionVO conditionVO) {
@@ -87,4 +99,3 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
     }
 
 }
-

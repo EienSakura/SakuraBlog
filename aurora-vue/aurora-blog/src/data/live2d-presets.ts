@@ -44,6 +44,7 @@ export const LIVE2D_SESSION_KEYS = {
   hotArticles: 'live2d.hotArticles',
   randomTags: 'live2d.randomTags',
   activities: 'live2d.activities',
+  dynamicOffline: 'live2d.dynamicOffline',
   disableFlag: 'live2d.disableFlag',
   lastScene: 'live2d.lastScene'
 }

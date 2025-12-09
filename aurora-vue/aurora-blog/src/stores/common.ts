@@ -4,7 +4,9 @@ export const useCommonStore = defineStore('commonStore', {
   state: () => {
     return {
       isMobile: false,
-      headerImage: ''
+      headerImage: '',
+      defaultHeaderImage: '',
+      headerRevision: 0
     }
   },
   actions: {
@@ -13,9 +15,16 @@ export const useCommonStore = defineStore('commonStore', {
     },
     setHeaderImage(imageUrl: string) {
       this.headerImage = imageUrl
+      this.headerRevision++
+    },
+    setDefaultHeaderImage(imageUrl: string) {
+      this.defaultHeaderImage = imageUrl
+    },
+    restoreHeaderImage() {
+      this.setHeaderImage(this.defaultHeaderImage || '')
     },
     resetHeaderImage() {
-      this.headerImage = ''
+      this.setHeaderImage('')
     }
   }
 })

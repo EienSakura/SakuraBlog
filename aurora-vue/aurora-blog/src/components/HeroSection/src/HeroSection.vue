@@ -199,42 +199,78 @@ export default defineComponent({
 .hero-section {
   scroll-snap-align: start;
   position: relative;
+  z-index: 3;
   width: 100%;
   height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 10;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  color: #fff;
   pointer-events: none; /* Let clicks pass through to background if needed, but we have pointer-events: auto on children */
+  text-align: center;
+  text-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
 }
 
 .hero-content {
   text-align: center;
   pointer-events: auto;
+  padding: 1rem 1.5rem;
 }
 
 .hero-title {
-  font-size: 3rem;
-  font-weight: 700;
+  font-size: clamp(2.75rem, 5vw, 3.75rem);
+  font-weight: 800;
   margin-bottom: 1rem;
-  font-family: 'Rubik', sans-serif;
-  letter-spacing: 2px;
+  font-family: 'Rubik', 'Poppins', sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.28);
+  text-shadow:
+    0 18px 35px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(0, 0, 0, 0.45),
+    0 4px 10px rgba(0, 0, 0, 0.55);
 }
 
 .hero-subtitle {
-  font-size: 1.5rem;
-  font-weight: 400;
+  font-size: clamp(1.2rem, 2.4vw, 1.5rem);
+  font-weight: 500;
   min-height: 2rem;
-  font-family: 'Noto Serif SC', serif;
+  font-family: 'Noto Serif SC', 'Inter', serif;
+  color: #fff;
+  letter-spacing: 0.04em;
+  -webkit-text-stroke: 0.4px rgba(0, 0, 0, 0.2);
+  text-shadow:
+    0 12px 25px rgba(0, 0, 0, 0.45),
+    0 0 18px rgba(0, 0, 0, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.4);
+  position: relative;
+  padding: 0 0.75rem;
+}
+.hero-subtitle::after {
+  content: '';
+  position: absolute;
+  inset: auto 28% -0.15rem 28%;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  opacity: 0.75;
+}
+
+.typed-text {
+  display: inline-block;
+  color: #fff;
 }
 
 .cursor {
   display: inline-block;
-  margin-left: 2px;
+  margin-left: 6px;
   animation: blink 1s infinite;
+  color: #fff;
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.7),
+    0 0 20px rgba(255, 255, 255, 0.6);
 }
 
 .cursor.typing {

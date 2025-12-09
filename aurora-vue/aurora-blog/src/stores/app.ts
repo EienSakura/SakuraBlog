@@ -71,6 +71,8 @@ export const useAppStore = defineStore('appStore', {
       if (this.appLoading === true) return
       if (this.NPTimeout !== -1) clearTimeout(this.NPTimeout)
       if (this.loadingTimeout !== -1) clearTimeout(this.loadingTimeout)
+      const parentEl = document.getElementById('loading-bar-wrapper')
+      nProgress.configure({ parent: parentEl ? '#loading-bar-wrapper' : 'body' })
       nProgress.start()
       this.appLoading = true
     },
