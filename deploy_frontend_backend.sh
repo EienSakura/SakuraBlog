@@ -12,6 +12,7 @@ FRONTEND_PORT=80
 CONFIG_DIR="$PROJECT_ROOT/deploy/config"
 UPLOAD_DIR="$PROJECT_ROOT/uploads"
 SKIP_BUILD=false
+DEPLOY_SUCCESS=false
 
 usage() {
   cat <<'EOF'
@@ -38,6 +39,14 @@ ensure_absolute_path() {
     printf '%s/%s\n' "$PROJECT_ROOT" "$input"
   fi
 }
+
+cleanup_on_exit() {
+  if [[ "$DEPLOY_SUCCESS" != true ]]; then
+    docker rm -f "$BACKEND_CONTAINER" "$FRONTEND_CONTAINER" >/dev/null 2>&1 || true
+  fi
+}
+
+trap cleanup_on_exit EXIT
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -126,12 +135,21 @@ stop_container_if_exists() {
   fi
 }
 
+start_container() {
+  local name="$1"
+  shift
+  if ! docker run -d --name "$name" "$@"; then
+    echo "容器 $name 启动失败，正在清理..." >&2
+    docker rm -f "$name" >/dev/null 2>&1 || true
+    exit 1
+  fi
+}
+
 stop_container_if_exists "$BACKEND_CONTAINER"
 stop_container_if_exists "$FRONTEND_CONTAINER"
 
 echo "启动后端容器 $BACKEND_CONTAINER，端口映射 $BACKEND_PORT:8080"
-docker run -d \
-  --name "$BACKEND_CONTAINER" \
+start_container "$BACKEND_CONTAINER" \
   --restart=always \
   --network "$NETWORK_NAME" \
   -p "$BACKEND_PORT:8080" \
@@ -140,12 +158,13 @@ docker run -d \
   "$BACKEND_IMAGE"
 
 echo "启动前端容器 $FRONTEND_CONTAINER，端口映射 $FRONTEND_PORT:80"
-docker run -d \
-  --name "$FRONTEND_CONTAINER" \
+start_container "$FRONTEND_CONTAINER" \
   --restart=always \
   --network "$NETWORK_NAME" \
   -p "$FRONTEND_PORT:80" \
   "$FRONTEND_IMAGE"
+
+DEPLOY_SUCCESS=true
 
 echo "部署完成。"
 echo "前端：访问 http://<服务器IP>:$FRONTEND_PORT"

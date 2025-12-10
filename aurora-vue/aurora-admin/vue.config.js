@@ -11,7 +11,6 @@ module.exports = defineConfig({
     port: 8081,
     proxy: {
       '/api': {
-        // target: 'https://www.linhaojun.top/api',
         target: 'http://localhost:18088',
         changeOrigin: true,
         pathRewrite: {

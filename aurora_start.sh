@@ -358,6 +358,3 @@ echo "服务器安全组需要开放：8066端口，才能访问博客"
 echo 访问 http://$public_ip:8066/ 即可访问博客
 echo 访问 http://$public_ip:8066/admin/ 即可访问后台管理
 echo "后台管理默认账号密码为：admin@163.com / 123456"
-echo "作者：花未眠（http://www.linhaojun.top/）"
-echo "部署脚本作者：karl（https://kangxianghui.top/）"
-echo "感谢您选择使用Aurora博客系统，祝您使用愉快！"

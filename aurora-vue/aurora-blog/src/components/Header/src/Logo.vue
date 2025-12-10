@@ -9,7 +9,7 @@
         {{ websiteConfig.englishName || 'BLOG' }}
       </span>
     </div>
-    <img class="logo-image" :src="websiteConfig.logo" alt="site-logo" />
+    <!-- <img class="logo-image" :src="websiteConfig.logo" alt="site-logo" /> -->
   </div>
 </template>
 
