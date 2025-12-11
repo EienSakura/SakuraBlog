@@ -28,6 +28,9 @@
                   :src="item"
                   @click="handlePreview(index)" />
               </div>
+              <div class="empty-tip" v-if="!loading && photos.length === 0 && noResult">
+                {{ t('settings.noPhotos') }}
+              </div>
             </div>
           </div>
         </div>
@@ -63,7 +66,8 @@ export default defineComponent({
       photos: [] as any,
       current: 1,
       size: 10,
-      albumId: route.params.albumId
+      albumId: route.params.albumId,
+      loading: false
     })
     onBeforeRouteUpdate((to) => {
       reactiveData.photoAlbumName = ''
@@ -71,25 +75,35 @@ export default defineComponent({
       reactiveData.noResult = false
       reactiveData.current = 1
       reactiveData.albumId = to.params.albumId
+      reactiveData.loading = false
       loadDataFromServer()
     })
     const handlePreview = (index: any) => {
       v3ImgPreviewFn({ images: reactiveData.photos, index })
     }
     const loadDataFromServer = () => {
-      let params = {
+      if (reactiveData.loading) return
+      reactiveData.loading = true
+      const params = {
         current: reactiveData.current,
         size: reactiveData.size
       }
-      api.getPhotosBuAlbumId(reactiveData.albumId, params).then(({ data }) => {
-        if (data.data.photos.length > 0) {
-          reactiveData.current++
-          reactiveData.photoAlbumName = data.data.photoAlbumName
-          reactiveData.photos.push(...data.data.photos)
-        } else {
-          reactiveData.noResult = true
-        }
-      })
+      api
+        .getPhotosBuAlbumId(reactiveData.albumId, params)
+        .then(({ data }) => {
+          const response = data.data || { photos: [], photoAlbumName: '' }
+          if (response.photos.length > 0) {
+            reactiveData.current++
+            reactiveData.photoAlbumName = response.photoAlbumName
+            reactiveData.photos.push(...response.photos)
+            reactiveData.noResult = false
+          } else {
+            reactiveData.noResult = true
+          }
+        })
+        .finally(() => {
+          reactiveData.loading = false
+        })
     }
     return {
       ...toRefs(reactiveData),
@@ -117,6 +131,9 @@ export default defineComponent({
   content: '';
   display: block;
   flex-grow: 9999;
+}
+.empty-tip {
+  @apply text-center text-ob-dim py-12 text-base;
 }
 @media (max-width: 759px) {
   .photo {

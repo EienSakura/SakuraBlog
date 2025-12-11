@@ -46,17 +46,10 @@
       <li
         class="not-italic font-medium text-xs h-full relative flex flex-col items-center justify-center cursor-pointer text-center py-4 px-2"
         data-menu="PhotoAlbums">
-        <Dropdown hover class="nav-link text-sm block px-1.5 py-0.5 rounded-md relative uppercase">
-          <span class="relative z-50" v-if="$i18n.locale === 'cn'" @click="pushPage('/photos')"> 相册 </span>
-          <span class="relative z-50" v-else-if="$i18n.locale === 'en'" @click="pushPage('/photos')"> PhotoAlbums </span>
-          <DropdownMenu>
-            <template v-for="item in albums" :key="item.id">
-              <DropdownItem @click="pushPage(`/photos/${item.id}`)" :name="item.albumName">
-                <span class="relative z-50">{{ item.albumName }}</span>
-              </DropdownItem>
-            </template>
-          </DropdownMenu>
-        </Dropdown>
+        <div class="nav-link text-sm block px-1.5 py-0.5 rounded-md relative uppercase" @click="pushPage('/photos')">
+          <span class="relative z-50" v-if="$i18n.locale === 'cn'"> 相册 </span>
+          <span class="relative z-50" v-else-if="$i18n.locale === 'en'"> PhotoAlbums </span>
+        </div>
       </li>
     </ul>
   </nav>
@@ -64,13 +57,12 @@
 
 <script lang="ts">
 // @ts-nocheck
-import { defineComponent, onMounted, reactive, toRef, toRefs } from 'vue'
+import { defineComponent } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Dropdown, DropdownMenu, DropdownItem } from '@/components/Dropdown'
 import { isExternal } from '@/utils/validate'
 import config from '@/config/config'
-import api from '@/api/api'
 
 export default defineComponent({
   name: 'Navigation',
@@ -88,22 +80,9 @@ export default defineComponent({
         })
       }
     }
-    const reactiveData = reactive({
-      albums: [] as any
-    })
-    onMounted(() => {
-      api.getAlbums().then(({ data }) => {
-        reactiveData.albums = data.data
-      })
-    })
-    const openPhotoAlbum = (id: any): void => {
-      router.push('/photos/' + id)
-    }
     return {
-      ...toRefs(reactiveData),
       routes: config.routes,
       pushPage,
-      openPhotoAlbum,
       te,
       t
     }

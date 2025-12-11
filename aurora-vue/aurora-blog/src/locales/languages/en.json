@@ -73,6 +73,8 @@
     "view-count":"View Count",
     "not-found-message":"Page not found",
     "go-home":"Go home",
-    "go-back":"Go back"
+    "go-back":"Go back",
+    "noAlbums":"No albums available yet",
+    "noPhotos":"No photos in this album"
   }
 }

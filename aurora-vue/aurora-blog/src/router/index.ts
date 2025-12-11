@@ -52,6 +52,11 @@ const routes = [
     component: () => import('../views/FriendLink.vue')
   },
   {
+    path: '/photos',
+    name: 'PhotoAlbums',
+    component: () => import('../views/PhotoAlbums.vue')
+  },
+  {
     path: '/photos/:albumId',
     name: 'Photos',
     component: () => import('../views/Photos.vue')

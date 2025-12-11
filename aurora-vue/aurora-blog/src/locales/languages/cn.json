@@ -73,6 +73,8 @@
     "view-count":"总访问量",
     "not-found-message":"页面不存在",
     "go-home":"返回首页",
-    "go-back":"返回上一页"
+    "go-back":"返回上一页",
+    "noAlbums":"暂时没有相册",
+    "noPhotos":"该相册暂无照片"
   }
 }

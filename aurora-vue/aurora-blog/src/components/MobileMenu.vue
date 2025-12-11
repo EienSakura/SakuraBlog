@@ -77,19 +77,11 @@
         </DropdownMenu>
       </Dropdown>
     </li>
-    <li>
-      <Dropdown
-        class="flex flex-col justify-center items-center nav-link text-sm block px-1.5 py-0.5 rounded-md relative uppercase">
+    <li class="pb-2 cursor-pointer">
+      <div class="text-sm block px-1.5 py-0.5 rounded-md relative uppercase" @click="pushPage('/photos')">
         <span class="relative z-50" v-if="$i18n.locale === 'cn'"> 相册 </span>
         <span class="relative z-50" v-else-if="$i18n.locale === 'en'"> PhotoAlbums </span>
-        <DropdownMenu expand>
-          <template v-for="item in albums" :key="item.id">
-            <DropdownItem @click="pushPage(`/photos/${item.id}`)" :name="item.albumName">
-              <span class="relative z-50">{{ item.albumName }}</span>
-            </DropdownItem>
-          </template>
-        </DropdownMenu>
-      </Dropdown>
+      </div>
     </li>
   </ul>
 </template>
@@ -103,7 +95,6 @@ import { useRouter } from 'vue-router'
 import { useNavigatorStore } from '@/stores/navigator'
 import Social from '@/components/Social.vue'
 import config from '@/config/config'
-import api from '@/api/api'
 
 export default defineComponent({
   name: 'ObMobileMenu',
@@ -114,18 +105,11 @@ export default defineComponent({
     const navigatorStore = useNavigatorStore()
     const { t } = useI18n()
     const reactiveData = reactive({
-      routes: '' as any,
-      albums: [] as any
+      routes: '' as any
     })
     onMounted(() => {
       reactiveData.routes = config.routes
-      fetchAblums()
     })
-    const fetchAblums = () => {
-      api.getAlbums().then(({ data }) => {
-        reactiveData.albums = data.data
-      })
-    }
     const pushPage = (path: string): void => {
       if (!path) return
       navigatorStore.toggleMobileMenu()

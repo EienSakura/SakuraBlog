@@ -1,12 +1,5 @@
 <template>
-  <div ref="live2dContainer" id="live2d-widget-container">
-    <transition name="fade">
-      <div v-if="fallbackActive" class="live2d-degrade-layer">
-        <p>{{ fallbackMessage }}</p>
-        <button class="live2d-degrade-action" type="button" @click="retryLoad">重新加载</button>
-      </div>
-    </transition>
-  </div>
+  <div ref="live2dContainer" id="live2d-widget-container"></div>
 </template>
 
 <script lang="ts">
@@ -97,6 +90,7 @@ const TOOLBAR_ACTIONS: Live2dToolbarAction[] = [
 ]
 
 const LIVE2D_PATH = '/live2d-widget/'
+const LOAD_RETRY_LIMIT = 3
 
 export default defineComponent({
   name: 'Live2DWidget',
@@ -109,8 +103,6 @@ export default defineComponent({
     const config = ref<Live2dConfig>({ ...defaultConfig })
     const widgetLoaded = ref(false)
     const widgetLoading = ref(false)
-    const fallbackActive = ref(false)
-    const fallbackMessage = ref('Live2D 小助手正在休息，随时可以唤醒我～')
     const disabled = ref(sessionStorage.getItem(LIVE2D_SESSION_KEYS.disableFlag) === 'true')
     const interactionCount = ref(0)
     const currentScene = ref<Live2dSceneKey>(sessionStorage.getItem(LIVE2D_SESSION_KEYS.lastScene) as Live2dSceneKey || 'default')
@@ -128,7 +120,7 @@ export default defineComponent({
     let homeStayTimer: number | undefined
     let tipHideTimer: number | undefined
     let idleRefreshHandle: number | undefined
-    let earlyFallbackTimer: number | undefined
+    let loadAttempts = 0
     const routeChangeHandler = (event: Event) => {
       const detail = (event as CustomEvent).detail
       handleRouteEvent(detail)
@@ -514,23 +506,11 @@ export default defineComponent({
       })
     }
 
-    const toggleDegradeClass = (enabled: boolean) => {
-      document.body.classList.toggle('live2d-degrade-mode', enabled)
-    }
-
-    const activateFallback = (message: string) => {
-      fallbackMessage.value = message
-      fallbackActive.value = true
-      toggleDegradeClass(true)
-    }
-
     const triggerLoad = async () => {
       if (widgetLoaded.value || widgetLoading.value || disabled.value) return
       widgetLoading.value = true
-      earlyFallbackTimer = window.setTimeout(() => {
-        if (!widgetLoaded.value) activateFallback('Live2D 加载较慢，已暂时使用精简模式。')
-      }, 2000)
       const startTime = performance.now()
+      let shouldRetry = false
       try {
         ensureStyles()
         await ensureScript()
@@ -549,9 +529,7 @@ export default defineComponent({
           drag: false
         })
         widgetLoaded.value = true
-        fallbackActive.value = false
-        toggleDegradeClass(false)
-        if (earlyFallbackTimer) window.clearTimeout(earlyFallbackTimer)
+        loadAttempts = 0
         emitReady(Math.round(performance.now() - startTime))
         injectToolbarActions()
         scheduleHomeStayTip()
@@ -559,11 +537,20 @@ export default defineComponent({
         resetIdleTimer()
         maybeShowActivityHighlight()
       } catch (error) {
-        activateFallback('Live2D 加载失败，显示文本提示中。')
+        loadAttempts += 1
+        shouldRetry = loadAttempts < LOAD_RETRY_LIMIT
+        const prefix = shouldRetry ? 'Live2D 加载失败，准备重试' : 'Live2D 多次加载失败，已停止重试'
+        const logger = shouldRetry ? console.warn : console.error
+        logger(`${prefix}（第 ${loadAttempts} 次）`, error)
         emitError(error as Error)
         handleErrorWindow()
       } finally {
         widgetLoading.value = false
+        if (!widgetLoaded.value && shouldRetry) {
+          window.setTimeout(() => {
+            triggerLoad()
+          }, 2000)
+        }
       }
     }
 
@@ -591,17 +578,7 @@ export default defineComponent({
       if (idleTimer) window.clearTimeout(idleTimer)
       if (homeStayTimer) window.clearTimeout(homeStayTimer)
       if (tipHideTimer) window.clearTimeout(tipHideTimer)
-      if (earlyFallbackTimer) window.clearTimeout(earlyFallbackTimer)
       cancelIdleJob()
-      toggleDegradeClass(false)
-    }
-
-    const retryLoad = () => {
-      if (disabled.value) {
-        disabled.value = false
-        sessionStorage.removeItem(LIVE2D_SESSION_KEYS.disableFlag)
-      }
-      triggerLoad()
     }
 
     const handleRouteEvent = (detailRoute: any) => {
@@ -651,10 +628,7 @@ export default defineComponent({
     })
 
     return {
-      live2dContainer,
-      fallbackActive,
-      fallbackMessage,
-      retryLoad
+      live2dContainer
     }
   }
 })
@@ -673,38 +647,13 @@ function resolveEnvApiBase() {
   right: 80px;
   bottom: 0;
   z-index: 9999;
-  width: 220px;
-  height: 260px;
+  width: 0;
+  height: 0;
+  overflow: visible;
   transform: translateZ(0) scale(1);
   will-change: transform;
   isolation: isolate;
   transform-origin: bottom right;
-}
-
-.live2d-degrade-layer {
-  position: absolute;
-  right: 0;
-  bottom: 20px;
-  padding: 12px 16px;
-  background: rgba(21, 23, 30, 0.85);
-  color: var(--text-normal, #fff);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-  max-width: 220px;
-  font-size: 0.85rem;
-  line-height: 1.5;
-}
-
-.live2d-degrade-action {
-  margin-top: 8px;
-  width: 100%;
-  border: none;
-  border-radius: 999px;
-  padding: 6px 0;
-  background: var(--main-gradient, linear-gradient(135deg, #4facfe 0%, #00f2fe 100%));
-  color: #0f1115;
-  font-weight: 600;
-  cursor: pointer;
 }
 
 :global(#waifu-tips .live2d-tip-action) {
@@ -760,16 +709,6 @@ function resolveEnvApiBase() {
   canvas {
     background: transparent !important;
   }
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 
 @media (max-width: 768px) {
