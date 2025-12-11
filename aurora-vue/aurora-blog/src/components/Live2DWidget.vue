@@ -92,7 +92,7 @@ const TOOLBAR_ICONS = {
 }
 
 const TOOLBAR_ACTIONS: Live2dToolbarAction[] = [
-  { id: 'waifu-tool-explore', label: '去看看', action: 'explore', icon: TOOLBAR_ICONS.explore, tooltip: '随机推荐文章' },
+  { id: 'waifu-tool-explore', label: '去看看', action: 'explore', icon: TOOLBAR_ICONS.explore, tooltip: '去首页' },
   { id: 'waifu-tool-toc', label: '目录', action: 'toc', icon: TOOLBAR_ICONS.toc, tooltip: '唤起导航浮窗' }
 ]
 
@@ -428,8 +428,8 @@ export default defineComponent({
         router.push('/')
         return
       }
-      const pick = hotArticles.value[Math.floor(Math.random() * hotArticles.value.length)]
-      router.push(`/articles/${pick.id}`)
+      // const pick = hotArticles.value[Math.floor(Math.random() * hotArticles.value.length)]
+      // router.push(`/articles/${pick.id}`)
     }
 
     const maybeShowActivityHighlight = () => {

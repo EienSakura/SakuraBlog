@@ -146,6 +146,12 @@ export default defineComponent({
         articleStore.featuredArticles = data.data.featuredArticles
       })
     }
+    const normalizeRecords = (payload: any) => {
+      if (!payload || !Array.isArray(payload.records)) {
+        return []
+      }
+      return payload.records
+    }
     const fetchArticles = () => {
       activeTab.value = userStore.tab
       nowCategoryId = userStore.tab
@@ -159,12 +165,13 @@ export default defineComponent({
           })
           .then(({ data }) => {
             if (data.flag) {
-              data.data.records.forEach((item: any) => {
+              const records = normalizeRecords(data.data)
+              records.forEach((item: any) => {
                 normalizeArticleAbstract(item)
               })
-              articleStore.articles = data.data.records
-              pagination.total = data.data.count
-              reactiveData.haveArticles = true
+              articleStore.articles = records
+              pagination.total = data.data?.count || 0
+              reactiveData.haveArticles = records.length > 0
             }
           })
       } else {
@@ -180,12 +187,13 @@ export default defineComponent({
           categoryId: categoryId
         })
         .then(({ data }) => {
-          data.data.records.forEach((item: any) => {
+          const records = normalizeRecords(data.data)
+          records.forEach((item: any) => {
             normalizeArticleAbstract(item)
           })
-          articleStore.articles = data.data.records
-          pagination.total = data.data.count
-          reactiveData.haveArticles = true
+          articleStore.articles = records
+          pagination.total = data.data?.count || 0
+          reactiveData.haveArticles = records.length > 0
         })
     }
     const fetchCategories = () => {
