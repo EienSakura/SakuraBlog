@@ -45,6 +45,7 @@
             WHERE a.is_delete = 0
               AND a.STATUS in (1, 2)
         ) aat ON t.id = aat.tag_id
+        GROUP BY t.id, tag_name
         ORDER BY RAND()
         LIMIT #{limit}
     </select>

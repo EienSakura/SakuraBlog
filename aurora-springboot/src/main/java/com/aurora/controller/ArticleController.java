@@ -39,6 +39,12 @@ public class ArticleController {
         return ResultVO.ok(articleService.listTopAndFeaturedArticles());
     }
 
+    @ApiOperation("\u83b7\u53d6\u70ed\u95e8\u6587\u7ae0")
+    @GetMapping("/articles/hot")
+    public ResultVO<List<Live2dHotArticleDTO>> listHotArticles(@RequestParam(value = "limit", defaultValue = "5") Integer limit) {
+        return ResultVO.ok(articleService.listHotArticles(limit));
+    }
+
     @ApiOperation("获取所有文章")
     @GetMapping("/articles/all")
     public ResultVO<PageResultDTO<ArticleCardDTO>> listArticles() {

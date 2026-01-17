@@ -12,6 +12,8 @@ public interface ArticleService extends IService<Article> {
 
     TopAndFeaturedArticlesDTO listTopAndFeaturedArticles();
 
+    List<Live2dHotArticleDTO> listHotArticles(Integer limit);
+
     PageResultDTO<ArticleCardDTO> listArticles();
 
     PageResultDTO<ArticleCardDTO> listArticlesByCategoryId(Integer categoryId);

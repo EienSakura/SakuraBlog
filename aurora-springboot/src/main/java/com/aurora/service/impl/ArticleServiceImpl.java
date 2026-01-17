@@ -94,6 +94,44 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         return topAndFeaturedArticlesDTO;
     }
 
+    @Override
+    public List<Live2dHotArticleDTO> listHotArticles(Integer limit) {
+        int fetchSize = normalizeLimit(limit);
+        Map<Object, Double> articleMap = redisService.zReverseRangeWithScore(ARTICLE_VIEWS_COUNT, 0, fetchSize - 1);
+        List<Integer> articleIds = new ArrayList<>();
+        if (articleMap != null && !articleMap.isEmpty()) {
+            articleIds = articleMap.entrySet().stream()
+                    .sorted((left, right) -> Double.compare(
+                            right.getValue() == null ? 0D : right.getValue(),
+                            left.getValue() == null ? 0D : left.getValue()))
+                    .map(entry -> parseArticleId(entry.getKey()))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }
+        List<Live2dHotArticleDTO> articles = CollectionUtils.isEmpty(articleIds)
+                ? articleMapper.listLatestArticles(fetchSize)
+                : articleMapper.listHotArticlesByIds(articleIds);
+        if (CollectionUtils.isEmpty(articles)) {
+            return new ArrayList<>();
+        }
+        if (articleMap != null && !articleMap.isEmpty()) {
+            Map<Integer, Integer> viewsMap = new HashMap<>();
+            articleMap.forEach((key, value) -> {
+                Integer id = parseArticleId(key);
+                if (id != null) {
+                    viewsMap.put(id, value == null ? 0 : value.intValue());
+                }
+            });
+            articles.forEach(article -> {
+                Integer views = viewsMap.get(article.getId());
+                if (views != null) {
+                    article.setViews(views);
+                }
+            });
+        }
+        return articles;
+    }
+
     @SneakyThrows
     @Override
     public PageResultDTO<ArticleCardDTO> listArticles() {
@@ -322,6 +360,34 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     public void updateArticleViewsCount(Integer articleId) {
         redisService.zIncr(ARTICLE_VIEWS_COUNT, articleId, 1D);
+    }
+
+    private int normalizeLimit(Integer limit) {
+        int fetchSize = limit == null ? 5 : limit;
+        if (fetchSize <= 0) {
+            fetchSize = 5;
+        }
+        if (fetchSize > 20) {
+            fetchSize = 20;
+        }
+        return fetchSize;
+    }
+
+    private Integer parseArticleId(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Integer) {
+            return (Integer) value;
+        }
+        if (value instanceof Long) {
+            return ((Long) value).intValue();
+        }
+        try {
+            return Integer.valueOf(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private Category saveArticleCategory(ArticleVO articleVO) {

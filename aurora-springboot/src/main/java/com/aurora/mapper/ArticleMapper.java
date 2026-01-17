@@ -4,6 +4,7 @@ import com.aurora.model.dto.ArticleAdminDTO;
 import com.aurora.model.dto.ArticleCardDTO;
 import com.aurora.model.dto.ArticleDTO;
 import com.aurora.model.dto.ArticleStatisticsDTO;
+import com.aurora.model.dto.Live2dHotArticleDTO;
 import com.aurora.entity.Article;
 import com.aurora.model.vo.ConditionVO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -17,6 +18,10 @@ import java.util.List;
 public interface ArticleMapper extends BaseMapper<Article> {
 
     List<ArticleCardDTO> listTopAndFeaturedArticles();
+
+    List<Live2dHotArticleDTO> listHotArticlesByIds(@Param("articleIds") List<Integer> articleIds);
+
+    List<Live2dHotArticleDTO> listLatestArticles(@Param("limit") Integer limit);
 
     List<ArticleCardDTO> listArticles(@Param("current") Long current, @Param("size") Long size);
 

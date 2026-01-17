@@ -97,6 +97,37 @@
           and a.status in (1, 2)
         order by is_top desc, is_featured desc
     </select>
+    <select id="listHotArticlesByIds" resultType="com.aurora.model.dto.Live2dHotArticleDTO">
+        SELECT a.id                                                    AS id,
+               a.article_title                                         AS title,
+               a.article_cover                                         AS cover,
+               IF(a.article_abstract IS NULL OR a.article_abstract = '', SUBSTR(a.article_content, 1, 120),
+                  a.article_abstract)                                 AS summary
+        FROM t_article a
+        WHERE a.id IN
+        <foreach collection="articleIds" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+          AND a.is_delete = 0
+          AND a.status in (1, 2)
+        ORDER BY FIELD(a.id,
+        <foreach collection="articleIds" item="id" separator=",">
+            #{id}
+        </foreach>
+        )
+    </select>
+    <select id="listLatestArticles" resultType="com.aurora.model.dto.Live2dHotArticleDTO">
+        SELECT a.id                                                    AS id,
+               a.article_title                                         AS title,
+               a.article_cover                                         AS cover,
+               IF(a.article_abstract IS NULL OR a.article_abstract = '', SUBSTR(a.article_content, 1, 120),
+                  a.article_abstract)                                 AS summary
+        FROM t_article a
+        WHERE a.is_delete = 0
+          AND a.status in (1, 2)
+        ORDER BY a.id DESC
+        LIMIT #{limit}
+    </select>
     <select id="listArticles" resultMap="ArticleCardDTOResultMap">
         SELECT a.id                            AS id,
                article_cover,

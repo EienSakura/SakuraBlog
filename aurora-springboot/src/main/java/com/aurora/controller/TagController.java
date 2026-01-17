@@ -2,6 +2,7 @@ package com.aurora.controller;
 
 
 import com.aurora.annotation.OptLog;
+import com.aurora.model.dto.Live2dTagSummaryDTO;
 import com.aurora.model.dto.TagAdminDTO;
 import com.aurora.model.dto.TagDTO;
 import com.aurora.model.vo.ResultVO;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.aurora.constant.OptTypeConstant.*;
 
@@ -41,8 +43,15 @@ public class TagController {
 
     @ApiOperation("随机获取标签")
     @GetMapping("/tags/random")
-    public ResultVO<List<TagDTO>> getRandomTags(@RequestParam(value = "limit", defaultValue = "5") Integer limit) {
-        return ResultVO.ok(tagService.listRandomTags(limit));
+    public ResultVO<List<Live2dTagSummaryDTO>> getRandomTags(@RequestParam(value = "limit", defaultValue = "5") Integer limit) {
+        List<TagDTO> tags = tagService.listRandomTags(limit);
+        List<Live2dTagSummaryDTO> result = tags.stream()
+                .map(tag -> Live2dTagSummaryDTO.builder()
+                        .id(tag.getId())
+                        .name(tag.getTagName())
+                        .build())
+                .collect(Collectors.toList());
+        return ResultVO.ok(result);
     }
 
     @ApiOperation(value = "查询后台标签列表")
